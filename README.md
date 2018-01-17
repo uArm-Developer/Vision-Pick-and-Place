@@ -19,10 +19,18 @@ Vision.ino is an arduino file for the MEGA2560
 
 color_tracking_test.py is the code for OpenMV based on OpenMV IDE
 
-The firmware of uArm should be modified by yourself:
+The uArm firmware should be uploaded by yourself:
 
-1.Download the original firmware [here](https://github.com/uArm-Developer/SwiftProForArduino)
+1.Download the XLoader [here](http://xloader.russemotto.com/)
 
-2.Modify the code following the [guide](http://download.ufactory.cc/docs/en/uArm-Swift-Pro-Quick-Start-Guide-171221.pdf) Page19
+2.Set the parameter below
 
-3.Compile the code and upload it into the MEGA2560
+    Hex file: uArm Firmware.hex
+
+    Device: Mega(ATMEGA2560)
+
+    COM port: depending on your system
+
+    Baud rate: 115200
+
+3.Click Upload to finish the flashing
