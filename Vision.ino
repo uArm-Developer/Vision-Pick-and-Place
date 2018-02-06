@@ -25,6 +25,7 @@ void loop() {
     delay(5000);//wait for the uarm to finish the moving then start the vision tracking
     flag = 1;//vision start
     Serial1.write('S');//send vision start command
+    Serial.write("status 0\n");//send vision start command
     times = millis();
   }
   
@@ -68,6 +69,7 @@ unsigned char get_openmv_data()
     Serial.write(inByte);
     if((inByte=='\n')&&(buf[0]=='x'))
     {
+      Serial.write("status 2\n");
       int counters=1;//jump the letter x
       x_openmv=0;
       do{
@@ -92,9 +94,16 @@ unsigned char get_openmv_data()
   }
   if((millis()-times>10000)&&(flag==1))//if no object detected, reset the flag every 10s
   {
+    //clear the uart buffers
+    while(Serial1.available() > 0)
+    {
+      inByte = Serial1.read();
+    }
+    //reset the count of uart
+    num = 0;
      times = millis();
      flag = 0;
-     Serial.write("status 1\n");
+     Serial.write("status 1\n");//NO OBJECT IN CAMERA
   }
   return 0;
 }
