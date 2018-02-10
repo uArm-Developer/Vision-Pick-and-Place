@@ -15,20 +15,24 @@ void setup() {
   Serial.write("START!\n");
   Serial2.write("M2400 S0\n");//set the mode of uarm
 
+  pinMode(A3,OUTPUT);//orange led
+  digitalWrite(A3,LOW);
   times = millis();
 }
 
 void loop() {
   if(flag == 0)
   {
+    digitalWrite(A3,HIGH);
     Serial2.write("G0 X200 Y0 Z160 F10000\n");
     delay(5000);//wait for the uarm to finish the moving then start the vision tracking
     flag = 1;//vision start
     Serial1.write('S');//send vision start command
     Serial.write("status 0\n");//send vision start command
     times = millis();
+    
   }
-  
+  digitalWrite(A3,LOW);
   //get commands from pc
   if (Serial.available() > 0) 
   {
