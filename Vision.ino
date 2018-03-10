@@ -1,6 +1,8 @@
 //adjust the parameters to make sure the grab position is in the center of object
-#define x_rate_of_pixle_to_distance 0.75  //adjust the this parameter when there is offset in x axis
-#define y_rate_of_pixle_to_distance 0.5  //adjust the this parameter when there is offset in y axis
+#define x_rate_of_pixle_to_distance 0.7  //adjust the this parameter when there is offset in x axis
+#define y_rate_of_pixle_to_distance 0.6  //adjust the this parameter when there is offset in y axis
+
+//After finishing the wiring, press the D5 button to run the code
 
 int inByte = 0,//serial buf
     num = 0;//buf counter
@@ -12,15 +14,21 @@ char buf[20],
 unsigned char get_openmv_data();
 void pick_and_palce();
 void setup() {
+  pinMode(5,INPUT);//button
+  pinMode(A3,OUTPUT);//orange led
+  digitalWrite(A3,LOW);
   Serial.begin(115200);//usb or xbee
   Serial1.begin(115200);//openmv
   Serial2.begin(115200);//uarm
+
+//if button is pressed, then start the program
+  while(digitalRead(5)==HIGH);
+  digitalWrite(A3,HIGH);
   
   Serial.write("START!\n");
   Serial2.write("M2400 S0\n");//set the mode of uarm
 
-  pinMode(A3,OUTPUT);//orange led
-  digitalWrite(A3,LOW);
+
   times = millis();
 }
 
@@ -51,7 +59,7 @@ void loop() {
     x_openmv = 320 - x_openmv;
     y_openmv = 240 - y_openmv;
     x_uarm = 200 + (y_openmv - 20) * x_rate_of_pixle_to_distance; //0.6;//convert the x coordinates for uarm
-    y_uarm = (x_openmv - 125) * y_rate_of_pixle_to_distance; //0.7;//convert the y coordinates for uarm
+    y_uarm = (x_openmv - 150) * y_rate_of_pixle_to_distance; //0.7;//convert the y coordinates for uarm
     Serial2.write("G0 X");
     Serial2.print(x_uarm,DEC);
     Serial2.write(" Y");
@@ -118,7 +126,7 @@ unsigned char get_openmv_data()
 //move the detected object to the fixed position
 void pick_and_palce()
 {
-  Serial2.write("G0 Z29 F10000\n");
+  Serial2.write("G0 Z23 F10000\n");
   Serial2.write("M2231 V1\n");
   Serial2.write("G0 Z100 F10000\n");
   delay(500);
