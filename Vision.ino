@@ -1,7 +1,3 @@
-//adjust the parameters to make sure the grab position is in the center of object
-#define x_rate_of_pixle_to_distance 0.7  //adjust the this parameter when there is offset in x axis
-#define y_rate_of_pixle_to_distance 0.6  //adjust the this parameter when there is offset in y axis
-
 //After finishing the wiring, press the D5 button to run the code
 
 int inByte = 0,//serial buf
@@ -11,8 +7,21 @@ int x_uarm=0, y_uarm=0;
 unsigned long times;
 char buf[20],
      flag=0;
+char color_sel=0;
+     
 unsigned char get_openmv_data();
 void pick_and_palce();
+
+void wait_for_finish_moving()
+{
+  inByte=0;//clear the buffer
+  while(inByte!='@'){
+     if (Serial2.available() > 0) {
+        inByte = Serial2.read();
+     }
+  }
+}
+
 void setup() {
   pinMode(5,INPUT);//button
   pinMode(A3,OUTPUT);//orange led
@@ -20,13 +29,17 @@ void setup() {
   Serial.begin(115200);//usb or xbee
   Serial1.begin(115200);//openmv
   Serial2.begin(115200);//uarm
-
+  
+  Serial2.write("G0 X200 Y0 Z160 F10000\n");
 //if button is pressed, then start the program
   while(digitalRead(5)==HIGH);
   digitalWrite(A3,HIGH);
   
   Serial.write("START!\n");
   Serial2.write("M2400 S0\n");//set the mode of uarm
+  delay(4000);
+  Serial2.write("M2400 S0\n");//set the mode of uarm
+  Serial2.write("M2122 V1\n");//report when finish the movemnet
 
 
   times = millis();
@@ -36,11 +49,24 @@ void loop() {
   if(flag == 0)
   {
     digitalWrite(A3,HIGH);
+    Serial2.write("G0 X200 Y0 Z159 F10000\n");// in order to trig the report of finish movement '@'
+    wait_for_finish_moving();
+    //Serial2.write("G2202 N0 V90\n");
+    //wait_for_finish_moving();
     Serial2.write("G0 X200 Y0 Z160 F10000\n");
-    delay(5000);//wait for the uarm to finish the moving then start the vision tracking
+
+    delay(100);//wait for the uarm to finish the moving then start the vision tracking
+    wait_for_finish_moving();
+    
     flag = 1;//vision start
+    switch(color_sel){
+      case 0: Serial1.write('y');break;
+      case 1: Serial1.write('r');break;
+      case 2: Serial1.write('g');break;
+      default: break;
+    }
     Serial1.write('S');//send vision start command
-    Serial.write("status 0\n");//send vision start command
+    Serial.write("vision start for finding the cube\n");//send vision start command
     times = millis();
     
   }
@@ -56,22 +82,23 @@ void loop() {
   //get object coordinates from openmv
   if(get_openmv_data()==1)
   {
-    x_openmv = 320 - x_openmv;
-    y_openmv = 240 - y_openmv;
-    x_uarm = 200 + (y_openmv - 20) * x_rate_of_pixle_to_distance; //0.6;//convert the x coordinates for uarm
-    y_uarm = (x_openmv - 150) * y_rate_of_pixle_to_distance; //0.7;//convert the y coordinates for uarm
-    Serial2.write("G0 X");
-    Serial2.print(x_uarm,DEC);
-    Serial2.write(" Y");
-    Serial2.print(y_uarm,DEC);
-    Serial2.write(" F10000\n");
-Serial.write("x_uarm:");
-Serial.println(x_uarm,DEC);
-Serial.write("y_uarm:");
-Serial.println(y_uarm,DEC);
-    pick_and_palce();
-    //while(1);
+    flag = 0;//vision end
+    Serial.write("move\n");//confirm the openmv data
+
+//new algorithm
+    x_uarm = y_openmv*(-0.7035)-3.635 + 88 + 70 + 200;
+    y_uarm = x_openmv*(-0.7488)+12.391 + 107.5 + 15 +0;
     
+    String commands="G0 X"; 
+    commands.concat(x_uarm);
+    commands+=" Y";
+    commands.concat(y_uarm);
+    commands+=" Z100 F10000\n";
+    Serial2.print(commands);
+    
+    Serial.print(commands);
+
+    pick_and_palce();    
   }
 }
 
@@ -85,7 +112,7 @@ unsigned char get_openmv_data()
     Serial.write(inByte);
     if((inByte=='\n')&&(buf[0]=='x'))
     {
-      Serial.write("status 2\n");
+      Serial.write("get openmv data\n");
       int counters=1;//jump the letter x
       x_openmv=0;
       do{
@@ -101,7 +128,6 @@ unsigned char get_openmv_data()
       }while(counters+1<num);
 
       num = 0;
-      flag = 0;//vision end
       return 1;
     }
     //Serial.println(x_openmv,DEC);
@@ -128,11 +154,16 @@ void pick_and_palce()
 {
   Serial2.write("G0 Z23 F10000\n");
   Serial2.write("M2231 V1\n");
-  Serial2.write("G0 Z100 F10000\n");
+  Serial2.write("G0 Z120 F10000\n");
   delay(500);
-  Serial2.write("G0 X150 Y-150 Z100 F10000\n");
-  Serial2.write("G0 Z32 F10000\n");
+  Serial2.write("G2202 N0 V15\n");
+  Serial2.write("G0 Z50 F10000\n");
   Serial2.write("M2231 V0\n");
+  Serial2.write("G0 Z80 F10000\n");
+  Serial2.write("G2202 N0 V90\n");
   delay(8000);
+  //change the color of tracking
+  color_sel++;
+  color_sel = color_sel%3;
 }
 
