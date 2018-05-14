@@ -7,7 +7,7 @@ int x_uarm=0, y_uarm=0;
 unsigned long times;
 char buf[20],
      flag=0;
-char color_sel=0;
+char color_sel=1;// 0:yellow   1:red   2:green
      
 unsigned char get_openmv_data();
 void pick_and_palce();
@@ -35,7 +35,7 @@ void setup() {
   while(digitalRead(5)==HIGH);
   digitalWrite(A3,HIGH);
   
-  Serial.write("START!\n");
+  Serial.write("V2 START!\n");
   Serial2.write("M2400 S0\n");//set the mode of uarm
   delay(4000);
   Serial2.write("M2400 S0\n");//set the mode of uarm
@@ -163,7 +163,7 @@ void pick_and_palce()
   Serial2.write("G2202 N0 V90\n");
   delay(8000);
   //change the color of tracking
-  color_sel++;
-  color_sel = color_sel%3;
+  //color_sel++;
+  //color_sel = color_sel%3;
 }
 

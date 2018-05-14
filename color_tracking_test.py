@@ -39,7 +39,7 @@ red_led.off()
 object_x_old = 0
 object_y_old = 0
 
-code = 4
+code = 2 ## 1:yellow   2:red    4:green
 buf = "00"
 # Only blobs that with more pixels than "pixel_threshold" and more area than "area_threshold" are
 # returned by "find_blobs" below. Change "pixels_threshold" and "area_threshold" if you change the
